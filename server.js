@@ -1,7 +1,12 @@
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
-const path = require('path');
+import express from 'express';
+import cors from 'cors';
+import fetch from 'node-fetch';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// __dirname e __filename não existem em ESM, precisa recriar:
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
@@ -16,6 +21,7 @@ app.post('/api/chat', async (req, res) => {
         if (!apiKey) {
             return res.status(400).json({ error: 'Chave API nao fornecida' });
         }
+
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -29,12 +35,15 @@ app.post('/api/chat', async (req, res) => {
                 max_tokens: 4096
             })
         });
+
         if (!response.ok) {
             const errorData = await response.json();
             return res.status(response.status).json({ error: errorData.error });
         }
+
         const data = await response.json();
         res.json(data);
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -44,6 +53,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log('Servidor rodando em http://localhost:' + PORT);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
